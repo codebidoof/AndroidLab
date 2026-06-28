@@ -1,5 +1,6 @@
 package kr.co.mky.mvipractice
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,6 +72,7 @@ fun MainContent(
         ) {
             Button(
                 onClick = {
+                    Log.d("MyApp", "Down 인텐트 뷰모델로 전달")
                     onIntent(CounterIntent.Down)
                 }
             ) {
@@ -85,7 +87,10 @@ fun MainContent(
             )
 
             Button(
-                onClick = { onIntent(CounterIntent.Up) }
+                onClick = {
+                    Log.d("MyApp", "Up 인텐트 뷰모델로 전달")
+                    onIntent(CounterIntent.Up)
+                }
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
