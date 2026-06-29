@@ -21,6 +21,8 @@ class MainViewModel @Inject constructor(
         initialState = CountState(0),
     )
 
+    // 카운터를 1 증가시킨다.
+    // 요청 중 로딩 상태를 활성화하며, 완료 후 새 값으로 갱신한다.
     fun increase() = intent {
         reduce { state.copy(isLoading = true) }
 
@@ -30,6 +32,8 @@ class MainViewModel @Inject constructor(
             }
     }
 
+    // 카운터를 1 감소시킨다.
+    // 현재 값이 0이면 감소 없이 토스트 [SideEffect]를 발행한다.
     fun decrease() = intent {
         if (state.number == 0) {
             postSideEffect(
