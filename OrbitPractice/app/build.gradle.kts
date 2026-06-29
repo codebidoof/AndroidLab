@@ -58,4 +58,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     implementation("androidx.compose.material:material-icons-extended")
+
+    implementation(libs.orbit.core)
+    implementation(libs.orbit.compose)
+    implementation(libs.orbit.viewmodel)
 }
