@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
@@ -21,8 +23,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kr.co.mky.mvipractice.component.CounterSection
+import kr.co.mky.mvipractice.component.ProfileSection
+import kr.co.mky.mvipractice.intent.Intent
 import kr.co.mky.mvipractice.sideeffect.SideEffect
 import kr.co.mky.mvipractice.state.CountState
+import kr.co.mky.mvipractice.state.ProfileState
+import kr.co.mky.mvipractice.state.SampleStatus
+import kr.co.mky.mvipractice.state.UiState
 import kr.co.mky.mvipractice.ui.theme.MVIPracticeTheme
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
@@ -49,46 +57,34 @@ fun MainScreen(
     MainContent(
         state = state,
         modifier = modifier,
-        onIncrease = viewModel::increase,
-        onDecrease = viewModel::decrease
+        onIntent = viewModel::handleIntent
     )
 
 }
 
 @Composable
 fun MainContent(
-    state: CountState,
+    state: UiState,
     modifier: Modifier = Modifier,
-    onIncrease: () -> Unit,
-    onDecrease: () -> Unit
+    onIntent: (Intent) -> Unit,
 ) {
-    Box(
+    Log.d("MyApp", "MainContent 리컴포지션")
+    Column(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator()
-            }
+        CounterSection(
+            countState = state.countState,
+            onIntent = onIntent
+        )
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Button(onClick = onDecrease) {
-                    Icon(Icons.Default.Remove, contentDescription = "감소")
-                }
+        Spacer(Modifier.height(24.dp))
 
-                Text(state.number.toString())
-
-                Button(onClick = onIncrease) {
-                    Icon(Icons.Default.Add, contentDescription = "증가")
-                }
-            }
-        }
+        ProfileSection(
+            profileState = state.profileState,
+            onIntent = onIntent
+        )
     }
 }
 
@@ -97,10 +93,20 @@ fun MainContent(
 fun MainScreenPreview() {
     MVIPracticeTheme {
         MainContent(
-            state = CountState(number = 10, isLoading = true),
-            onIncrease = {},
-            onDecrease = {}
+            state = UiState(
+                countState = CountState(
+                    number = 10,
+                    status = SampleStatus.Idle
+                ),
+                profileState = ProfileState(
+                    name = "문현우",
+                    nickName = "엠키",
+                    status = SampleStatus.Idle
+                )
+            ),
+            onIntent = {}
         )
     }
 }
+
 

@@ -2,9 +2,13 @@ package kr.co.mky.mvipractice
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kr.co.mky.mvipractice.intent.Intent
 import javax.inject.Inject
 import kr.co.mky.mvipractice.sideeffect.SideEffect
 import kr.co.mky.mvipractice.state.CountState
+import kr.co.mky.mvipractice.state.ProfileState
+import kr.co.mky.mvipractice.state.SampleStatus
+import kr.co.mky.mvipractice.state.UiState
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.syntax.simple.intent
@@ -15,27 +19,47 @@ import org.orbitmvi.orbit.viewmodel.container
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val counterRepository: CounterRepository
-) : ViewModel(), ContainerHost<CountState, SideEffect> {
+) : ViewModel(), ContainerHost<UiState, SideEffect> {
 
-    override val container: Container<CountState, SideEffect> = container(
-        initialState = CountState(0),
+    override val container: Container<UiState, SideEffect> = container(
+        initialState = UiState(
+            countState = CountState(),
+            profileState = ProfileState()
+        ),
     )
 
-    // 카운터를 1 증가시킨다.
-    // 요청 중 로딩 상태를 활성화하며, 완료 후 새 값으로 갱신한다.
-    fun increase() = intent {
-        reduce { state.copy(isLoading = true) }
+    fun handleIntent(intent: Intent) {
+        when(intent) {
+            Intent.Down -> decrease()
+            Intent.Up -> increase()
+            Intent.RefreshUser -> refreshUser()
+        }
+    }
 
-        counterRepository.increase(state.number)
+    private fun increase() = intent {
+        reduce {
+            state.copy(
+                countState = state.countState.copy(
+                    status = SampleStatus.Loading
+                )
+            )
+        }
+
+        counterRepository.increase(state.countState.number)
             .onSuccess { number ->
-                reduce { state.copy(number = number, isLoading = false) }
+                reduce {
+                    state.copy(
+                        countState = state.countState.copy(
+                            number = number,
+                            status = SampleStatus.Idle
+                        )
+                    )
+                }
             }
     }
 
-    // 카운터를 1 감소시킨다.
-    // 현재 값이 0이면 감소 없이 토스트 [SideEffect]를 발행한다.
-    fun decrease() = intent {
-        if (state.number == 0) {
+    private fun decrease() = intent {
+        if (state.countState.number == 0) {
             postSideEffect(
                 SideEffect.ShowToast("0 미만으로는 줄일 수 없어요!")
             )
@@ -43,17 +67,47 @@ class MainViewModel @Inject constructor(
         }
 
         reduce {
-            state.copy(isLoading = true)
+            state.copy(
+                countState = state.countState.copy(
+                    status = SampleStatus.Loading
+                )
+            )
         }
 
-        counterRepository.decrease(state.number)
+        counterRepository.decrease(state.countState.number)
             .onSuccess { number ->
                 reduce {
                     state.copy(
-                        number = number,
-                        isLoading = false
+                        countState = state.countState.copy(
+                            number = number,
+                            status = SampleStatus.Idle
+                        )
                     )
                 }
             }
     }
+
+    private fun refreshUser() = intent {
+        reduce {
+            state.copy(
+                profileState = state.profileState.copy(
+                    status = SampleStatus.Loading
+                )
+            )
+        }
+
+        counterRepository.getProfile()
+            .onSuccess {
+                reduce {
+                    state.copy(
+                        profileState = state.profileState.copy(
+                            name = it.name,
+                            nickName = it.nickName,
+                            status = SampleStatus.Idle
+                        )
+                    )
+                }
+            }
+    }
+
 }
